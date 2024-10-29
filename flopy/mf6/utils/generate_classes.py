@@ -5,6 +5,7 @@ import time
 from warnings import warn
 
 from .createpackages import create_packages
+from .createtoml import Dfn2Toml
 
 thisfilepath = os.path.dirname(os.path.abspath(__file__))
 flopypth = os.path.join(thisfilepath, "..", "..")
@@ -100,6 +101,15 @@ def replace_dfn_files(new_dfn_pth, flopy_dfn_path):
         shutil.copy(filename_w_path, flopy_dfn_path)
 
 
+def create_toml(flopy_toml_path, flopy_dfn_path):
+    os.makedirs(flopy_toml_path, exist_ok=True)
+    filenames = os.listdir(flopy_dfn_path)
+    for filename in filenames:
+        if filename != "common.dfn" and filename != "flopy.dfn":
+            dfn_fpath = os.path.join(flopy_dfn_path, filename)
+            Dfn2Toml(dfn_fpath, flopy_toml_path)
+
+
 def delete_mf6_classes():
     pth = os.path.join(flopypth, "mf6", "modflow")
     files = [
@@ -154,6 +164,7 @@ def generate_classes(
     print(72 * "*")
     print("Updating the flopy MODFLOW 6 classes")
     flopy_dfn_path = os.path.join(flopypth, "mf6", "data", "dfn")
+    flopy_toml_path = os.path.join(flopypth, "mf6", "data", "toml")
 
     # download the dfn files and put them in flopy.mf6.data or update using
     # user provided dfnpath
@@ -184,6 +195,9 @@ def generate_classes(
     replace_dfn_files(new_dfn_pth, flopy_dfn_path)
     if dfnpath is None:
         shutil.rmtree(new_dfn_pth)
+
+    print("  Generating TOML definition files.")
+    create_toml(flopy_toml_path, flopy_dfn_path)
 
     print("  Deleting existing mf6 classes.")
     delete_mf6_classes()
